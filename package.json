@@ -1,0 +1,24 @@
+{
+  "name": "aiagentlearn",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrHzq/aiAgentLearn.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MrHzq/aiAgentLearn/issues"
+  },
+  "homepage": "https://github.com/MrHzq/aiAgentLearn#readme",
+  "dependencies": {
+    "@langchain/openai": "^1.2.3"
+  }
+}
