@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/MrHzq/aiAgentLearn#readme",
   "dependencies": {
-    "@langchain/openai": "^1.2.3"
+    "@langchain/openai": "^1.2.3",
+    "dotenv": "^17.2.3"
   }
 }
