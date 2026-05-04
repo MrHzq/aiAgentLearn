@@ -1,6 +1,6 @@
 import "dotenv/config";
 import path from "path";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import {
   MilvusClient,
   DataType,
@@ -9,6 +9,16 @@ import {
 } from "@zilliz/milvus2-sdk-node";
 import { EPubLoader } from "@langchain/community/document_loaders/fs/epub";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+
+// 创建大模型
+const model = new ChatOpenAI({
+  modelName: process.env.MODEL_NAME,
+  apiKey: process.env.OPENAI_API_KEY,
+  configuration: {
+    baseURL: process.env.OPENAI_BASE_URL, // 千问模型固定
+  },
+  temperature: 0, // 温度，0 表示最确定的回答，不要自己发挥
+});
 
 const VECTOR_DIM = 1024;
 
@@ -44,7 +54,7 @@ const createEBookCollection = async () => {
 
     if (hasCollection) {
       console.log(`collection ${COLLECTION_NAME} already exists`);
-      return;
+      return false;
     }
 
     // 创建集合
@@ -76,14 +86,11 @@ const createEBookCollection = async () => {
       params: { nlist: 1024 }, // 索引参数
     });
 
-    // 加载集合
-    await client.loadCollection({
-      collection_name: COLLECTION_NAME, // 集合名称
-    });
-
-    console.log("✔️ collection loaded successfully");
+    console.log("✔️ create collection e_book successfully");
+    return true;
   } catch (error) {
-    console.error("创建集合失败:", error);
+    console.error("create collection e_book failed:", error);
+    throw error;
   }
 };
 
@@ -180,6 +187,23 @@ const loadAndProcessEBooks = async (bookId) => {
   }
 };
 
+// 查询电子书
+const queryEBookCollection = async (query) => {
+  console.log(`问题: ${query}`);
+
+  const queryVector = await getEmbedding(query);
+
+  const queryResult = await client.search({
+    collection_name: COLLECTION_NAME, // 集合名称
+    vector: queryVector, // 查询向量
+    limit: 5, // 返回结果数量
+    metric_type: MetricType.COSINE, // 余弦相似度
+    output_fields: ["id", "book_id", "chapter_num", "index", "content"],
+  });
+
+  return queryResult.results;
+};
+
 // 主函数
 const main = async () => {
   console.log("connecting to milvus...");
@@ -187,14 +211,59 @@ const main = async () => {
   console.log("✔️ connected successfully");
 
   // 创建集合
-  await createEBookCollection();
+  const isCreated = await createEBookCollection();
+  if (isCreated) {
+    // 集合创建成功
+    const bookId = 1;
+    // 加载并处理电子书
+    await loadAndProcessEBooks(bookId);
+    console.log("✔️ load and process e_books successfully");
+  } else {
+    // 集合创建失败，则表明已存在集合，则直接加载集合即可
+    // 如果已经加载，会报错，忽略即可
+    try {
+      await client.loadCollection({ collection_name: COLLECTION_NAME });
+      console.log("✔️ collection loaded successfully");
+    } catch (error) {
+      // 如果已经加载，会报错，忽略即可
+      if (!error.message.includes("already loaded")) {
+        throw error;
+      }
+      console.log("✔️ collection already loaded");
+    }
+  }
 
-  const bookId = 1;
+  const query = "徐福贵的儿女有哪些？";
+  const results = await await queryEBookCollection(query);
+  if (results.length === 0) {
+    console.log("没有找到相关结果");
+    return "没有找到相关结果";
+  }
 
-  // 加载并处理电子书
-  await loadAndProcessEBooks(bookId);
+  // 构建上下文
+  const context = results
+    .map((item, i) => {
+      return `
+      [片段 ${i + 1}]
+      章节: 第 ${item.chapter_num} 章
+      内容: ${item.content}`;
+    })
+    .join("\n\n━━━━━\n\n");
 
-  console.log("处理完成！");
+  // 构建提示词
+  const prompt = `
+    你是一个专业的电子书搜索助手，你的任务是根据用户的问题，从电子书中中提取相关的内容。
+    电子书的名称是 ${BOOK_NAME}，用户的问题是 ${query}。
+    请根据以下上下文回答用户的问题：
+    ${context}
+    `;
+
+  console.log("\n【AI 回答】");
+  const response = await model.invoke(prompt);
+  console.log(response.content);
+  console.log("\n");
+
+  return response.content;
 };
 
 main();
