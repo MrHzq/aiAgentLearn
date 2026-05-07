@@ -52,7 +52,7 @@ const createEBookCollection = async () => {
       collection_name: COLLECTION_NAME,
     });
 
-    if (hasCollection) {
+    if (hasCollection.value) {
       console.log(`collection ${COLLECTION_NAME} already exists`);
       return false;
     }
