@@ -23,7 +23,7 @@ const question = `请介绍一下爱因斯坦的信息。
 ${parser.getFormatInstructions()}`;
 
 console.log(
-  "%c [ question ]",
+  "%c [ 提示词 question ]",
   "font-size:13px; background:#90fe01; color:#d4ff45;",
   question,
 );
