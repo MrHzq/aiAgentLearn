@@ -126,7 +126,29 @@ const main = async () => {
 
   await createCollection();
 
-  await insertData(await history.getMessages());
+  const conversations = [
+    {
+      content:
+        "用户: 我叫赵六，是一名数据科学家\n助手: 很高兴认识你，赵六！数据科学是一个很有趣的领域。",
+    },
+    {
+      content:
+        "用户: 我最近在研究机器学习算法\n助手: 机器学习确实很有意思，你在研究哪些算法呢？",
+    },
+    {
+      content:
+        "用户: 我喜欢打篮球和看电影\n助手: 运动和文化娱乐都是很好的爱好！",
+    },
+    {
+      content: "用户: 我周末经常去电影院\n助手: 看电影是很好的放松方式。",
+    },
+    {
+      content:
+        "用户: 我的职业是软件工程师\n助手: 软件工程师是个很有前景的职业！",
+    },
+  ];
+
+  await insertData(conversations);
 };
 
 main();
