@@ -1,5 +1,5 @@
-import "dotenv/config";
-import { ChatOpenAI } from "@langchain/openai";
+import "dotenv/config"; // 加载环境变量
+import { ChatOpenAI } from "@langchain/openai"; // 引入 OpenAI 模型
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
 
