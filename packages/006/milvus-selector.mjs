@@ -26,12 +26,6 @@ const embeddings = new OpenAIEmbeddings({
   dimensions: VECTOR_DIM, // 向量维度
 });
 
-// 获取嵌入向量
-const getEmbedding = async (text) => {
-  const result = await embeddings.embedQuery(text);
-  return result;
-};
-
 const COLLECTION_NAME = "weekly_report_examples";
 
 const vectorStore = await Milvus.fromExistingCollection(embeddings, {
