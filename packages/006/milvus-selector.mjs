@@ -28,6 +28,7 @@ const embeddings = new OpenAIEmbeddings({
 
 const COLLECTION_NAME = "weekly_report_examples";
 
+// 从 Milvus 中加载向量存储
 const vectorStore = await Milvus.fromExistingCollection(embeddings, {
   collectionName: COLLECTION_NAME,
   clientConfig: {
